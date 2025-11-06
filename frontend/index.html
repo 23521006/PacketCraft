@@ -65,29 +65,121 @@
                                     <div class="card p-3 mb-3">
                                         <h6>Ethernet</h6>
                                         <div class="row g-2">
-                                            <div class="col-md-6"><label class="form-label">Src MAC</label><input class="form-control form-control-sm" name="eth_src"></div>
-                                            <div class="col-md-6"><label class="form-label">Dst MAC</label><input class="form-control form-control-sm" name="eth_dst"></div>
-                                            <div class="col-md-6 mt-2"><label class="form-label">Type</label><input class="form-control form-control-sm" name="eth_type"></div>
+                                            <div class="col-md-6">
+                                                <label class="form-label">Src MAC</label>
+                                                <input class="form-control form-control-sm" name="eth_src" id="ethSrc">
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label class="form-label">Dst MAC</label>
+                                                <input class="form-control form-control-sm" name="eth_dst" id="ethDst">
+                                            </div>
+                                            <div class="col-md-6 mt-2">
+                                                <label class="form-label">Type</label>
+                                                <select id="networkProtocol" class="form-control form-control-sm" name="eth_type">
+                                                    <option value="0x0800" selected>IPv4</option>
+                                                    <option value="0x86DD">IPv6</option>
+                                                    <option value="0x0806">ARP</option>
+                                                </select>
+                                            </div>
                                         </div>
                                     </div>
 
-                                    <div class="card p-3 mb-3">
-                                        <h6>IP</h6>
+                                    <div class="card p-3 mb-3" id="ipv4">
+                                        <h6>IPv4</h6>
                                         <div class="row g-2">
-                                            <div class="col-md-3"><label class="form-label">Version</label><select class="form-select form-select-sm" name="ip_ver"><option value="4">IPv4</option><option value="6">IPv6</option></select></div>
-                                            <div class="col-md-4"><label class="form-label">Src IP</label><input class="form-control form-control-sm" name="ip_src"></div>
-                                            <div class="col-md-4"><label class="form-label">Dst IP</label><input class="form-control form-control-sm" name="ip_dst"></div>
-                                            <div class="col-md-2"><label class="form-label">TTL</label><input class="form-control form-control-sm" name="ip_ttl"></div>
+                                            <div class="col-md-6"><label class="form-label">Src IP</label>
+                                                <input class="form-control form-control-sm" name="ipv4_src" id="ipv4Src">
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label class="form-label">Dst IP</label>
+                                                <input class="form-control form-control-sm" name="ipv4_dst" id="ipv4Dst">
+                                            </div>
+                                            <div></div>
+                                            <div class="col-md-4"><label class="form-label">TTL</label>
+                                                <input class="form-control form-control-sm" name="ip_ttl" id="ipTTL">
+                                            </div>
+                                            <div class="col-md-4"><label class="form-label">IP ID</label>
+                                                <input class="form-control form-control-sm" name="ip_id" id="ipID">
+                                            </div>
+                                            <div class="col-md-4"><label class="form-label">Flags</label>
+                                                <input class="form-control form-control-sm" name="flags" id="flags">
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="card p-3 mb-3" id="ipv6" style="display: none;">
+                                        <h6>IPv6</h6>
+                                        <div class="row g-2">
+                                            <div class="col-md-6"><label class="form-label">Src IP</label>
+                                                <input class="form-control form-control-sm" name="ipv6_src" id="ipv6Src">
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label class="form-label">Dst IP</label>
+                                                <input class="form-control form-control-sm" name="ipv6_dst" id="ipv6Dst">
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="card p-3 mb-3" id="arp" style="display: none;">
+                                        <h6>ARP</h6>
+                                        <div class="row g-2">
+                                            <div class="col-md-3">
+                                                <label class="form-label">Operation</label>
+                                                <select class="form-select form-select-sm" name="op" id="op">
+                                                    <option value="1">Request</option>
+                                                    <option value="2">Reply</option>
+                                                </select>
+                                            </div>
+                                            <div class="col-md-4"><label class="form-label">Src IPv4</label>
+                                                <input class="form-control form-control-sm" name="ip_arp_src" id="ipv4ARPSrc">
+                                            </div>
+                                            <div class="col-md-4">
+                                                <label class="form-label">Dst IPv4</label>
+                                                <input class="form-control form-control-sm" name="ip_arp_dst" id="ipv4ARPDst">
+                                            </div>
                                         </div>
                                     </div>
 
                                     <div class="card p-3 mb-3">
                                         <h6>Transport</h6>
                                         <div class="row g-2">
-                                            <div class="col-md-4"><label class="form-label">Protocol</label><select class="form-select form-select-sm" name="proto" id="protoSelect"><option>TCP</option><option>UDP</option><option>ICMPv4</option><option>ICMPv6</option></select></div>
-                                            <div class="col-md-4"><label class="form-label">Src Port</label><input class="form-control form-control-sm" name="sport"></div>
-                                            <div class="col-md-4"><label class="form-label">Dst Port</label><input class="form-control form-control-sm" name="dport"></div>
-                                            <div class="col-md-6 mt-2"><label class="form-label">Flags / Type / Code</label><input class="form-control form-control-sm" name="flags"></div>
+                                            <div class="col-md-4">
+                                                <label class="form-label">Protocol</label>
+                                                <select class="form-select form-select-sm" name="proto" id="protoSelect">
+                                                    <option selected value="tcp">TCP</option>
+                                                    <option value="udp">UDP</option>
+                                                    <option value="icmp">ICMP</option>
+                                                </select>
+                                            </div>
+                                            <div></div>
+                                            <div class="col-md-4" id="sport_div">
+                                                <label class="form-label">Src Port</label>
+                                                <input class="form-control form-control-sm" name="sport" id="sport">
+                                            </div>
+                                            <div class="col-md-4" id="dport_div">
+                                                <label class="form-label">Dst Port</label>
+                                                <input class="form-control form-control-sm" name="dport" id="dport">
+                                            </div>
+                                            <div class="col-md-4" id="seq_div">
+                                                <label class="form-label">Sequence</label>
+                                                <input class="form-control form-control-sm" name="seq" id="seq">
+                                            </div>
+                                            <div class="col-md-4" id="ack_div">
+                                                <label class="form-label">Ack</label>
+                                                <input class="form-control form-control-sm" name="ack" id="ack">
+                                            </div>
+                                            <div class="col-md-4" id="tcp_flags_div">
+                                                <label class="form-label">Flags</label>
+                                                <input class="form-control form-control-sm" name="tcp_flags" id="tcp_flags">
+                                            </div>
+                                            <div class="col-md-4" id="type_div" style="display: none;">
+                                                <label class="form-label">Type</label>
+                                                <input class="form-control form-control-sm" name="type" id="type">
+                                            </div>
+                                            <div class="col-md-4" id="code_div" style="display: none;">
+                                                <label class="form-label">Code</label>
+                                                <input class="form-control form-control-sm" name="code" id="code">
+                                            </div>
                                         </div>
                                     </div>
 
@@ -97,7 +189,11 @@
                                     </div>
 
                                     <div class="d-flex gap-2 mb-3">
-                                        <select id="ifaceSelect" class="form-select form-select-sm" style="max-width:220px"><option>eth0</option><option>wlan0</option><option>lo</option></select>
+                                        <select id="ifaceSelect" class="form-select form-select-sm" style="max-width:220px">
+                                            <option>eth0</option>
+                                            <option>wlan0</option>
+                                            <option>lo</option>
+                                        </select>
                                         <button type="button" id="btnBuild" class="btn btn-primary">Build Packet</button>
                                         <button type="button" id="btnSend" class="btn btn-success">Send Packet</button>
 
@@ -107,17 +203,6 @@
                                             <button id="btnLoadJson" class="btn btn-outline-secondary btn-sm">Load JSON</button>
                                         </div>
                                     </div>
-
-                                    <!-- Batch send -->
-                                    <div class="card p-3">
-                                        <h6>Batch Send / Stress Test</h6>
-                                        <div class="row g-2 align-items-end">
-                                            <div class="col-md-3"><label class="form-label">Count</label><input id="batchCount" type="number" class="form-control form-control-sm" value="10"></div>
-                                            <div class="col-md-3"><label class="form-label">Rate (pkt/s)</label><input id="batchRate" type="number" class="form-control form-control-sm" value="5"></div>
-                                            <div class="col-md-6 d-flex gap-2"><button id="startBatch" class="btn btn-warning">Start</button><button id="stopBatch" class="btn btn-outline-warning" disabled>Stop</button></div>
-                                        </div>
-                                        <div class="mt-2"><small>Stats: Sent: <span id="statSent">0</span> • Received: <span id="statRecv">0</span> • Loss: <span id="statLoss">0</span>%</small></div>
-                                    </div>
                                 </form>
                             </div>
 
@@ -125,11 +210,6 @@
                                 <div class="card p-3 mb-3">
                                     <h6>Preview — Layered</h6>
                                     <pre id="layerPreview" style="font-family:monospace;min-height:150px;background:#fff;padding:1rem;overflow:auto"></pre>
-                                </div>
-
-                                <div class="card p-3">
-                                    <h6>Hex Dump</h6>
-                                    <pre id="hexPreview" class="hexdump" style="min-height:210px">(Chưa có gói)</pre>
                                 </div>
                             </div>
                         </div>
@@ -174,21 +254,58 @@
                     <section id="tabTools" class="tab-pane d-none">
                         <h4>Tools</h4>
                         <div class="row">
-                            <div class="col-md-6">
+                            <div class="col-md-4">
                                 <div class="card p-3 mb-3">
-                                    <h6>Traceroute (demo)</h6>
-                                    <div class="input-group mb-2"><input id="trHost" class="form-control form-control-sm" placeholder="example.com"><button id="startTrace" class="btn btn-sm btn-primary">Start</button></div>
+                                    <h6>Traceroute</h6>
+                                    <div class="input-group mb-2">
+                                        <input id="trHost" class="form-control form-control-sm" placeholder="example.com">
+                                        <button id="startTrace" class="btn btn-sm btn-primary">Start</button>
+                                    </div>
                                     <pre id="traceOut" style="min-height:180px;overflow:auto;background:#fff;padding:0.5rem"></pre>
                                 </div>
                             </div>
-                            <div class="col-md-6">
+                            <div class="col-md-4">
                                 <div class="card p-3 mb-3">
-                                    <h6>Port Scan (demo)</h6>
-                                    <div class="input-group mb-2"><input id="scanHost" class="form-control form-control-sm" placeholder="192.168.0.1"><input id="scanPorts" class="form-control form-control-sm" placeholder="1-1024" style="max-width:140px"><button id="startScan" class="btn btn-sm btn-primary">Scan</button></div>
-                                    <div style="max-height:220px;overflow:auto"><table class="table table-sm mt-2"><thead><tr><th>Port</th><th>State</th></tr></thead><tbody id="scanResult"></tbody></table></div>
+                                    <h6>Port Scan</h6>
+                                    <div class="input-group mb-2">
+                                        <input id="scanHost" class="form-control form-control-sm" placeholder="192.168.0.1">
+                                        <input id="scanPorts" class="form-control form-control-sm" placeholder="1-1024" style="max-width:140px">
+                                        <button id="startScan" class="btn btn-sm btn-primary">Scan</button></div>
+                                    <div style="max-height:220px;overflow:auto">
+                                        <table class="table table-sm mt-2">
+                                            <thead>
+                                                <tr>
+                                                    <th>Port</th>
+                                                    <th>State</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="scanResult"></tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="card p-3 mb-3">
+                                    <h6>Batch Send / Stress Test</h6>
+                                    <div class="row mb-2">
+                                        <div class="col-md-6">
+                                            <label class="form-label">Count</label>
+                                            <input id="batchCount" type="number" class="form-control form-control-sm" value="10">
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label">Rate (pkt/s)</label>
+                                            <input id="batchRate" type="number" class="form-control form-control-sm" value="5">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6 d-flex gap-2">
+                                        <button id="startBatch" class="btn btn-warning">Start</button>
+                                        <button id="stopBatch" class="btn btn-outline-warning" disabled>Stop</button>
+                                    </div>
+                                    <div class="mt-2"><small>Stats: Sent: <span id="statSent">0</span> • Received: <span id="statRecv">0</span> • Loss: <span id="statLoss">0</span>%</small></div>
                                 </div>
                             </div>
                         </div>
+                        
                     </section>
 
                     <!-- Settings -->
@@ -207,23 +324,8 @@
                                 </div>
                         
                                 <div class="card p-3 mb-3">
-                                    <h6>Export / Import</h6>
-                                    <div class="d-flex gap-2">
-                                        <button id="exportAll" class="btn btn-sm btn-outline-secondary">
-                                        Export to JSON
-                                        </button>
-                                        <button id="importAll" class="btn btn-sm btn-outline-secondary">
-                                        Import from JSON
-                                        </button>
-                                        <input id="importAllFile" type="file" accept="application/json" style="display:none">
-                                    </div>
-                                </div>
-                        
-                                <div class="card p-3 mb-3">
                                     <h6>Reset</h6>
-                                    <button id="resetSettings" class="btn btn-sm btn-outline-danger">
-                                        Reset to Default
-                                    </button>
+                                    <button id="resetSettings" class="btn btn-sm btn-outline-danger">Reset to Default</button>
                                 </div>
                         
                             </div>

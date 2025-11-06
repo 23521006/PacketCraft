@@ -32,57 +32,109 @@ document.querySelector("#menuToggle").addEventListener("click", () => document.q
 document.querySelector('[data-go="build"]').addEventListener("click", () => activateTab("build"));
 document.querySelector('[data-go="sniffer"]').addEventListener("click", () => activateTab("sniffer"));
 
+// ---------- Building UI handling ----------
+document.querySelector("#networkProtocol").addEventListener("change", e => {
+    const val = e.target.value;
+    document.querySelector("#ipv4").style.display = val === "0x0800" ? "block" : "none";
+    document.querySelector("#ipv6").style.display = val === "0x86DD" ? "block" : "none";
+    document.querySelector("#arp").style.display = val === "0x0806" ? "block" : "none";
+});
+
+document.querySelector("#protoSelect").addEventListener("change", e => {
+    const val = e.target.value;
+
+    document.querySelector("#sport_div").style.display = (val === "tcp" || val === "udp") ? "block" : "none";
+    document.querySelector("#dport_div").style.display = (val === "tcp" || val === "udp") ? "block" : "none";
+    document.querySelector("#seq_div").style.display = val === "tcp" ? "block" : "none";
+    document.querySelector("#ack_div").style.display = val === "tcp" ? "block" : "none";
+    document.querySelector("#tcp_flags_div").style.display = val === "tcp" ? "block" : "none";
+    document.querySelector("#type_div").style.display = val === "icmp" ? "block" : "none";
+    document.querySelector("#code_div").style.display = val === "icmp" ? "block" : "none";
+});
+
 // ---------- Build Packet ----------
-function renderLayered(obj) {
-    let s = "";
-    s += `Ethernet:\n  Src: ${obj.ethernet.src}\n  Dst: ${obj.ethernet.dst}\n  Type: ${obj.ethernet.type}\n\n`;
-    s += `IP (v${obj.ip.ver}):\n  Src: ${obj.ip.src}\n  Dst: ${obj.ip.dst}\n  TTL: ${obj.ip.ttl}\n\n`;
-    s += `Transport (${obj.transport.proto}):\n  SrcPort: ${obj.transport.sport}\n  DstPort: ${obj.transport.dport}\n  Flags: ${obj.transport.flags}\n\n`;
-    s += `Payload (${obj.payload.length} bytes):\n  ${obj.payload}\n`;
-    document.querySelector("#layerPreview").textContent = s;
-}
+function formatObject(obj, indent = "") {
+    let result = "";
+    for (const [key, value] of Object.entries(obj)) {
+        if (typeof value === "object" && value !== null) {
+            result += `${indent}${key}:\n` + formatObject(value, indent);
+        } else {
+            result += `${indent}${key}: ${value ?? ""}\n`;
+        }
+    }
   
-function renderHex(obj) {
-    const parts = [];
-    parts.push(`ETH_SRC:${obj.ethernet.src}`);
-    parts.push(`ETH_DST:${obj.ethernet.dst}`);
-    parts.push(`IP_SRC:${obj.ip.src}`);
-    parts.push(`IP_DST:${obj.ip.dst}`);
-    parts.push(`PROTO:${obj.transport.proto}`);
-    parts.push(`PAYLOAD:${obj.payload}`);
-    const joined = parts.join("|");
-    document.querySelector("#hexPreview").textContent = Helper.toHex(joined);
-    return Helper.toHex(joined);
+    return result;
+}
+
+function renderLayered(obj) {
+    const s = formatObject(obj);
+    document.querySelector("#layerPreview").textContent = s;
 }
   
 document.querySelector("#btnBuild").addEventListener("click", () => {
     const obj = gatherForm();
     renderLayered(obj);
-    renderHex(obj);
 });
 
 function gatherForm() {
     const f = new FormData(document.querySelector("#packetForm"));
+    const Ethernet= {
+        SrcMAC: f.get("eth_src"),
+        DstMAC: f.get("eth_dst"),
+        Type: f.get("eth_type"),
+    }
+    let Payload = f.get("payload");
+    const IPv4 = {
+        SrcIPv4: f.get("ipv4_src"),
+        DstIPv4: f.get("ipv4_dst"),
+        TTL: f.get("ipv4_ttl"),
+        IPID: f.get("ip_id"),
+        Flags: f.get("flags"),
+    }
+    const IPv6 = {
+        SrcIPv6: f.get("ipv6_src"),
+        DstIPv6: f.get("ipv6_dst"),
+    }
+    const ARP = {
+        Op: f.get("op"),
+        SrcIP: f.get("ip_arp_src"),
+        DstIP: f.get("ip_arp_dst"),
+    }
+    const TCP = {
+        Srcport: f.get("sport"),
+        Dstport: f.get("dport"),
+        Seq: f.get("seq"),
+        Ack: f.get("ack"),
+        Flags: f.get("tcp_flags"),
+    }
+    const UDP = {
+        SrcPort: f.get("sport"),
+        DstPort: f.get("dport"),
+    }
+    const ICMP = {
+        Type: f.get("type"),
+        Code: f.get("code"),
+    }
+    let Network, Transport;
+
+    if (f.get("proto") === "tcp") Transport = TCP;
+    else if (f.get("proto") === "udp") Transport = UDP;
+    else if (f.get("proto") === "icmp") Transport = ICMP;
+
+    if (Ethernet.Type === "0x0800") Network = IPv4;
+    else if (Ethernet.Type === "0x86DD") Network = IPv6;
+    else if (Ethernet.Type === "0x0806") {
+        Network = ARP;
+        Payload = {};
+        Transport = {};
+    }
+
     const out = {
-        ethernet: {
-            src: f.get("eth_src"),
-            dst: f.get("eth_dst"),
-            type: f.get("eth_type"),
-        },
-        ip: {
-            ver: f.get("ip_ver"),
-            src: f.get("ip_src"),
-            dst: f.get("ip_dst"),
-            ttl: f.get("ip_ttl"),
-        },
-        transport: {
-            proto: f.get("proto"),
-            sport: f.get("sport"),
-            dport: f.get("dport"),
-            flags: f.get("flags"),
-        },
-        payload: f.get("payload")
-    };
+        Ethernet,
+        Network,
+        Transport,
+        Payload,
+    }
     return out;
 }
 
