@@ -1,6 +1,7 @@
 html {
     box-sizing: border-box;
     background-color: #121212;
+    scroll-padding-top: 100px;
 }
 
 body::-webkit-scrollbar {
@@ -215,18 +216,25 @@ body {
     font-size: 150%;
 }
 
-#packet-builder {
-    margin-top: 80px;
+#packet_builder {
     text-align: center;
-    padding: 20px 0;
+    padding-top: 150px;
+    padding-bottom: 150px;
 }
 
-#packet-builder h1 {
+#packet_builder h1 {
     font-size: 2.5rem;
     margin-bottom: 10px;
     background: linear-gradient(90deg, #6dfdfe, #b86bff);
     -webkit-background-clip: text;
     color: transparent;
+    text-align: center;
+}
+
+#packet_builder .description {
+    color: #ccc;
+    font-size: 1.2rem;
+    margin-bottom: 25px;
 }
 
 #packet-container {
@@ -238,69 +246,47 @@ body {
     gap: 15px;
 }
 
-#packet-container label {
-    text-align: left;
-    font-weight: bold;
-    font-size: 1.1rem;
-    color: #cfcfcf;
-}
-
+/* Input + select */
 #packet-container input,
 #packet-container select {
     padding: 12px;
     border-radius: 10px;
+    background: rgba(255,255,255,0.07);
     border: none;
-    background: rgba(255, 255, 255, 0.06);
-    backdrop-filter: blur(4px);
-    color: white;
-    font-size: 1rem;
-    transition: 0.2s ease-in-out;
+    color: #fff;
+    backdrop-filter: blur(5px);
+    transition: 0.2s;
 }
 
 #packet-container input:focus,
 #packet-container select:focus {
-    background: rgba(255, 255, 255, 0.15);
-    outline: 2px solid #7a4dff;
+    background: rgba(255,255,255,0.15);
+    outline: none;
 }
 
+/* Buttons */
 #packet-container button {
     padding: 12px;
     border-radius: 12px;
+    background: linear-gradient(90deg,#7a4dff,#00eaff);
     border: none;
+    color: #fff;
     cursor: pointer;
-    background: linear-gradient(90deg, #7a4dff, #00eaff);
-    color: white;
-    font-weight: bold;
-    transition: transform 0.15s ease, box-shadow 0.2s ease;
+    transition: 0.2s;
 }
 
 #packet-container button:hover {
     transform: translateY(-2px);
-    box-shadow: 0 8px 15px rgba(0, 255, 255, 0.3);
+    box-shadow: 0 0 12px rgba(0,255,255,0.3);
 }
 
+/* Result */
 #packetResult {
-    margin-top: 20px;
     padding: 20px;
-    background: rgba(20, 20, 20, 0.5);
-    backdrop-filter: blur(6px);
-    border-radius: 12px;
-    color: #e3e3e3;
+    background: rgba(20,20,20,0.6);
+    border-radius: 10px;
     text-align: left;
-    font-family: monospace;
     max-height: 300px;
     overflow-y: auto;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-#packet-container.card {
-    box-shadow: 0 0 20px rgba(0, 255, 255, 0.1);
-}
-
-#packet-builder .line {
-    width: 120px;
-    height: 3px;
-    margin: 0 auto 25px auto;
-    background: linear-gradient(90deg, #7a4dff, #00eaff);
-    border-radius: 5px;
+    font-family: monospace;
 }
