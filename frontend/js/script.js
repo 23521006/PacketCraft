@@ -1,9 +1,10 @@
+import * as Helper from "./helperFunction.js";
 import * as Validation from "./validation.js";
 import * as Template from "./templates.js";
 
-const API_BASE = "http://127.0.0.1:5000/api";
-let displayedPacketIds = new Set();
+const packetStore = { sent: [], received: [] }; // in-memory for PCAP export
 
+// ---------- Tab handling ----------
 const tabs = [...document.querySelectorAll(".nav-link[data-target]")];
 const panes = [...document.querySelectorAll(".tab-pane")];
 
@@ -70,6 +71,11 @@ function renderLayered(obj) {
     const s = formatObject(obj);
     document.querySelector("#layerPreview").textContent = s;
 }
+  
+document.querySelector("#btnBuild").addEventListener("click", () => {
+    const obj = gatherForm();
+    renderLayered(obj);
+});
 
 function gatherForm() {
     const f = new FormData(document.querySelector("#packetForm"));
@@ -280,28 +286,13 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 // ---------- Sniffer handling ----------
 function addSniffRow(pkt) {
-    if (pkt.id && displayedPacketIds.has(pkt.id)) {
-        return;
-    }
-    if (pkt.id) {
-        displayedPacketIds.add(pkt.id);
-    }
-    
-    packetCounter++;
-    
     const tr = document.createElement("tr");
-    tr.className = getPacketColorClass(pkt);
-    
-    const no = packetCounter;
-    const t = pkt.ts ? new Date(pkt.ts).toLocaleTimeString() + "." + String(pkt.ts % 1000).padStart(3, '0') : (pkt.time || "N/A");
-    const proto = pkt.obj?.transport?.proto || (pkt.obj?.arp ? "ARP" : "Unknown");
-    const src = proto === "ARP" ? (pkt.obj?.ip?.src || "N/A") : (pkt.obj?.ip?.src || pkt.obj?.ethernet?.src || "N/A");
-    const dst = proto === "ARP" ? (pkt.obj?.ip?.dst || "N/A") : (pkt.obj?.ip?.dst || pkt.obj?.ethernet?.dst || "N/A");
-    const length = getPacketLength(pkt);
-    const info = getPacketInfo(pkt);
-    
-    tr.innerHTML = `<td>${no}</td><td>${t}</td><td>${src}</td><td>${dst}</td><td>${proto}</td><td>${length}</td><td>${info}</td>`;
-    
+    const t = new Date(pkt.ts).toLocaleTimeString();
+    const src = pkt.obj.ip.src || pkt.obj.ethernet.src;
+    const dst = pkt.obj.ip.dst || pkt.obj.ethernet.dst;
+    const proto = pkt.obj.transport.proto;
+    const payloadSummary = (pkt.obj.payload || "").slice(0, 40);
+    tr.innerHTML = `<td>${t}</td><td>${src}</td><td>${dst}</td><td>${proto}</td><td>${payloadSummary}</td>`;
     tr.addEventListener("click", () => {
         document.querySelector("#modalDetail").textContent =
         `Time: ${new Date(pkt.ts).toISOString()}\n\n` +
@@ -334,6 +325,6 @@ addSniffRow(pkt);
   
 document.querySelector("#clearSniff").addEventListener("click", () => {
     document.querySelector("#sniffTable").innerHTML = "";
-        displayedPacketIds.clear();
-    }
-);
+    packetStore.sent = [];
+    packetStore.received = [];
+});
