@@ -1,4 +1,3 @@
-import * as Helper from "./helperFunction.js";
 import * as Validation from "./validation.js";
 import * as Template from "./templates.js";
 
@@ -71,55 +70,6 @@ function renderLayered(obj) {
     const s = formatObject(obj);
     document.querySelector("#layerPreview").textContent = s;
 }
-  
-document.querySelector("#btnBuild").addEventListener("click", async () => {
-    const obj = gatherForm();
-    const ifaceSelect = document.querySelector("#ifaceSelect");
-    const selectedInterface = ifaceSelect.value;
-    
-    // Validate required fields
-    if (!obj.ip.dst) {
-        alert("Vui lòng nhập Destination IP để build packet!");
-        return;
-    }
-    
-    const btnBuild = document.querySelector("#btnBuild");
-    const originalText = btnBuild.textContent;
-    btnBuild.disabled = true;
-    btnBuild.textContent = "Building...";
-    
-    try {
-        const response = await fetch(`${API_BASE}/build`, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-                ...obj,
-                interface: selectedInterface
-            })
-        });
-        
-        const data = await response.json();
-        
-        if (data.status === "success") {
-            renderLayered(obj);
-            renderHex(obj);
-            const buildInfo = `Packet đã được build thành công!\n\n` +
-                            `Summary: ${data.summary}\n` +
-                            `Layers: ${data.layers.join(" / ")}\n` +
-                            `Length: ${data.length} bytes`;
-            if (data.hex) {
-                document.querySelector("#hexPreview").textContent = data.hex;
-            }
-            alert(buildInfo);
-        } else {
-            alert(`Lỗi build packet: ${data.message}`);
-        }
-    } catch (error) {
-        console.warn("Build API không khả dụng, chỉ preview:", error);
-    renderLayered(obj);
-});
 
 function gatherForm() {
     const f = new FormData(document.querySelector("#packetForm"));
@@ -386,4 +336,4 @@ document.querySelector("#clearSniff").addEventListener("click", () => {
     document.querySelector("#sniffTable").innerHTML = "";
         displayedPacketIds.clear();
     }
-});
+);
