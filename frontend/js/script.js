@@ -2,9 +2,9 @@ import * as Helper from "./helperFunction.js";
 import * as Validation from "./validation.js";
 import * as Template from "./templates.js";
 
-const packetStore = { sent: [], received: [] }; // in-memory for PCAP export
+const API_BASE = "http://127.0.0.1:5000/api";
+let displayedPacketIds = new Set();
 
-// ---------- Tab handling ----------
 const tabs = [...document.querySelectorAll(".nav-link[data-target]")];
 const panes = [...document.querySelectorAll(".tab-pane")];
 
@@ -72,8 +72,52 @@ function renderLayered(obj) {
     document.querySelector("#layerPreview").textContent = s;
 }
   
-document.querySelector("#btnBuild").addEventListener("click", () => {
+document.querySelector("#btnBuild").addEventListener("click", async () => {
     const obj = gatherForm();
+    const ifaceSelect = document.querySelector("#ifaceSelect");
+    const selectedInterface = ifaceSelect.value;
+    
+    // Validate required fields
+    if (!obj.ip.dst) {
+        alert("Vui lòng nhập Destination IP để build packet!");
+        return;
+    }
+    
+    const btnBuild = document.querySelector("#btnBuild");
+    const originalText = btnBuild.textContent;
+    btnBuild.disabled = true;
+    btnBuild.textContent = "Building...";
+    
+    try {
+        const response = await fetch(`${API_BASE}/build`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                ...obj,
+                interface: selectedInterface
+            })
+        });
+        
+        const data = await response.json();
+        
+        if (data.status === "success") {
+            renderLayered(obj);
+            renderHex(obj);
+            const buildInfo = `Packet đã được build thành công!\n\n` +
+                            `Summary: ${data.summary}\n` +
+                            `Layers: ${data.layers.join(" / ")}\n` +
+                            `Length: ${data.length} bytes`;
+            if (data.hex) {
+                document.querySelector("#hexPreview").textContent = data.hex;
+            }
+            alert(buildInfo);
+        } else {
+            alert(`Lỗi build packet: ${data.message}`);
+        }
+    } catch (error) {
+        console.warn("Build API không khả dụng, chỉ preview:", error);
     renderLayered(obj);
 });
 
@@ -286,13 +330,28 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 // ---------- Sniffer handling ----------
 function addSniffRow(pkt) {
+    if (pkt.id && displayedPacketIds.has(pkt.id)) {
+        return;
+    }
+    if (pkt.id) {
+        displayedPacketIds.add(pkt.id);
+    }
+    
+    packetCounter++;
+    
     const tr = document.createElement("tr");
-    const t = new Date(pkt.ts).toLocaleTimeString();
-    const src = pkt.obj.ip.src || pkt.obj.ethernet.src;
-    const dst = pkt.obj.ip.dst || pkt.obj.ethernet.dst;
-    const proto = pkt.obj.transport.proto;
-    const payloadSummary = (pkt.obj.payload || "").slice(0, 40);
-    tr.innerHTML = `<td>${t}</td><td>${src}</td><td>${dst}</td><td>${proto}</td><td>${payloadSummary}</td>`;
+    tr.className = getPacketColorClass(pkt);
+    
+    const no = packetCounter;
+    const t = pkt.ts ? new Date(pkt.ts).toLocaleTimeString() + "." + String(pkt.ts % 1000).padStart(3, '0') : (pkt.time || "N/A");
+    const proto = pkt.obj?.transport?.proto || (pkt.obj?.arp ? "ARP" : "Unknown");
+    const src = proto === "ARP" ? (pkt.obj?.ip?.src || "N/A") : (pkt.obj?.ip?.src || pkt.obj?.ethernet?.src || "N/A");
+    const dst = proto === "ARP" ? (pkt.obj?.ip?.dst || "N/A") : (pkt.obj?.ip?.dst || pkt.obj?.ethernet?.dst || "N/A");
+    const length = getPacketLength(pkt);
+    const info = getPacketInfo(pkt);
+    
+    tr.innerHTML = `<td>${no}</td><td>${t}</td><td>${src}</td><td>${dst}</td><td>${proto}</td><td>${length}</td><td>${info}</td>`;
+    
     tr.addEventListener("click", () => {
         document.querySelector("#modalDetail").textContent =
         `Time: ${new Date(pkt.ts).toISOString()}\n\n` +
@@ -325,6 +384,6 @@ addSniffRow(pkt);
   
 document.querySelector("#clearSniff").addEventListener("click", () => {
     document.querySelector("#sniffTable").innerHTML = "";
-    packetStore.sent = [];
-    packetStore.received = [];
+        displayedPacketIds.clear();
+    }
 });
