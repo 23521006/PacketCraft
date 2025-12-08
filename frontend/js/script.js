@@ -2,7 +2,7 @@ import * as Helper from "./helperFunction.js";
 import * as Validation from "./validation.js";
 import * as Template from "./templates.js";
 
-const packetStore = { sent: [], received: [] }; // in-memory for PCAP export
+const packetStore = { sent: [], received: [] };
 
 // ---------- Tab handling ----------
 const tabs = [...document.querySelectorAll(".nav-link[data-target]")];
@@ -304,7 +304,7 @@ function addSniffRow(pkt) {
 
 //Test
 const pkt = {
-    ts: Date.now(), // current timestamp
+    ts: Date.now(),
     obj: {
         ip: {
             src: "192.168.1.10",
@@ -318,8 +318,7 @@ const pkt = {
             proto: "TCP",
         },
         payload: "GET /index.html HTTP/1.1\r\nHost: example.com\r\n\r\n",
-    },
-    hex: "474554202f696e6465782e68746d6c20485454502f312e310d0a486f73743a206578616d706c652e636f6d0d0a0d0a"
+    }
 };
 addSniffRow(pkt);
   
@@ -328,3 +327,5 @@ document.querySelector("#clearSniff").addEventListener("click", () => {
     packetStore.sent = [];
     packetStore.received = [];
 });
+
+renderTemplates(Template.builtinTemplates)
