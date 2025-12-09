@@ -5,13 +5,13 @@ export const builtinTemplates = [
     {
         name: "Ping (ICMP Echo Request)",
         eth: {
-            eth_src: "00:0c:29:aa:bb:cc",
-            eth_dst: "ff:ff:ff:ff:ff:ff",
+            eth_src: "",
+            eth_dst: "",
             eth_type: "0x0800"
         },
         ip: {
-            ipv4_src: "192.168.1.100",
-            ipv4_dst: "192.168.1.1",
+            ipv4_src: "",
+            ipv4_dst: "1.1.1.1",
             ip_ttl: "64",
             ip_id: "1",
             flags: ""

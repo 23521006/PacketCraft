@@ -1,4 +1,4 @@
-import * as Helper from "./helperFunction.js";
+import * as Helper from "./helperFunction.js"
 import * as Validation from "./validation.js";
 import * as Template from "./templates.js";
 
@@ -54,16 +54,25 @@ document.querySelector("#protoSelect").addEventListener("change", e => {
 });
 
 // ---------- Build Packet ----------
-function formatObject(obj, indent = "") {
+function formatObject(obj, indent = 0) {
     let result = "";
+    const padding = "  ".repeat(indent);
+
     for (const [key, value] of Object.entries(obj)) {
-        if (typeof value === "object" && value !== null) {
-            result += `${indent}${key}:\n` + formatObject(value, indent);
+        if (value === undefined || value === null || value === "") continue;
+
+        const formattedKey = key.charAt(0).toUpperCase() + key.slice(1);
+
+        if (typeof value === "object" && !Array.isArray(value)) {
+            if (Object.keys(value).length === 0) continue;
+
+            result += `${padding}${formattedKey}:\n`;
+            result += formatObject(value, indent + 1);
+            result += `${padding}\n`;
         } else {
-            result += `${indent}${key}: ${value ?? ""}\n`;
+            result += `${padding}${formattedKey}: ${value}\n`;
         }
     }
-  
     return result;
 }
 
@@ -79,98 +88,93 @@ document.querySelector("#btnBuild").addEventListener("click", () => {
 
 function gatherForm() {
     const f = new FormData(document.querySelector("#packetForm"));
-    const Ethernet= {
-        SrcMAC: f.get("eth_src"),
-        DstMAC: f.get("eth_dst"),
-        Type: f.get("eth_type"),
-    }
-    let Payload = f.get("payload");
-    const IPv4 = {
-        SrcIPv4: f.get("ipv4_src"),
-        DstIPv4: f.get("ipv4_dst"),
-        TTL: f.get("ipv4_ttl"),
-        IPID: f.get("ip_id"),
-        Flags: f.get("flags"),
-    }
-    const IPv6 = {
-        SrcIPv6: f.get("ipv6_src"),
-        DstIPv6: f.get("ipv6_dst"),
-    }
-    const ARP = {
-        Op: f.get("op"),
-        SrcIP: f.get("ip_arp_src"),
-        DstIP: f.get("ip_arp_dst"),
-    }
-    const TCP = {
-        Srcport: f.get("sport"),
-        Dstport: f.get("dport"),
-        Seq: f.get("seq"),
-        Ack: f.get("ack"),
-        Flags: f.get("tcp_flags"),
-    }
-    const UDP = {
-        SrcPort: f.get("sport"),
-        DstPort: f.get("dport"),
-    }
-    const ICMP = {
-        Type: f.get("type"),
-        Code: f.get("code"),
-    }
-    let Network, Transport;
-
-    if (f.get("proto") === "tcp") Transport = TCP;
-    else if (f.get("proto") === "udp") Transport = UDP;
-    else if (f.get("proto") === "icmp") Transport = ICMP;
-
-    if (Ethernet.Type === "0x0800") Network = IPv4;
-    else if (Ethernet.Type === "0x86DD") Network = IPv6;
-    else if (Ethernet.Type === "0x0806") {
-        Network = ARP;
-        Payload = {};
-        Transport = {};
-    }
 
     const out = {
-        Ethernet,
-        Network,
-        Transport,
-        Payload,
+        eth: Helper.removeNulls({
+            eth_src: f.get("eth_src"),
+            eth_dst: f.get("eth_dst"),
+            eth_type: f.get("eth_type")
+        }),
+        transport: Helper.removeNulls({
+            proto: Helper.clean(f.get("proto")),
+            sport: Helper.clean(f.get("sport")),
+            dport: Helper.clean(f.get("dport")),
+            seq: Helper.clean(f.get("seq")),
+            ack: Helper.clean(f.get("ack")),
+            tcp_flags: Helper.clean(f.get("tcp_flags")),
+            type: Helper.clean(f.get("type")),
+            code: Helper.clean(f.get("code"))
+        }),
+        payload: Helper.clean(f.get("payload"))
+    };
+
+    if (f.get("eth_type") === "0x0800") {
+        out.ip = Helper.removeNulls({
+            ipv4_src: Helper.clean(f.get("ipv4_src")),
+            ipv4_dst: Helper.clean(f.get("ipv4_dst")),
+            ip_ttl: Helper.clean(f.get("ipv4_ttl")),
+            ip_id: Helper.clean(f.get("ip_id")),
+            flags: Helper.clean(f.get("flags"))
+        });
     }
+
+    if (f.get("eth_type") === "0x86DD") {
+        out.ipv6 = Helper.removeNulls({
+            ipv6_src: Helper.clean(f.get("ipv6_src")),
+            ipv6_dst: Helper.clean(f.get("ipv6_dst"))
+        });
+    }
+
+    if (f.get("eth_type") === "0x0806") {
+        out.arp = Helper.removeNulls({
+            op: Helper.clean(f.get("op")),
+            ip_arp_src: Helper.clean(f.get("ip_arp_src")),
+            ip_arp_dst: Helper.clean(f.get("ip_arp_dst"))
+        });
+    }
+
     return out;
 }
 
-document.querySelectorAll('input[name^="eth_"]').forEach(input => {
-    input.addEventListener('input', e => {
-        const { name, value } = e.target;
-        let valid = true;
-    
-        if (name === 'eth_src' || name === 'eth_dst')
-            valid = Validation.isValidMAC(value);
-        else if (name === 'eth_type')
-            valid = Validation.isValidType(value);
-    
-        e.target.classList.toggle('is-invalid', !valid);
-        e.target.classList.toggle('is-valid', valid);
+function getInterfaces() {
+    fetch("http://localhost:5000/interfaces")
+    .then(res => res.json())
+    .then(data => {
+        const select = document.getElementById("ifaceSelect");
+        select.innerHTML = "";
+
+        data.interfaces.forEach(iface => {
+            let opt = document.createElement("option");
+            opt.value = iface;
+            opt.textContent = iface;
+            select.appendChild(opt);
+        });
     });
-});
+}
+getInterfaces();
 
-document.querySelectorAll('input[name^="ip_"]').forEach(input => {
-    input.addEventListener('input', e => {
-        const version = document.querySelector('select[name="ip_ver"]').value;
-        const { name, value } = e.target;
-        let valid = true;
+function sendPacket() {
+    fetch("http://localhost:5000/send", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+            interface: document.getElementById("ifaceSelect").value,
+            packet: gatherForm()
+        })
+    })
+    .then(r => r.json())
+    .then(data => {
+        console.log(data);
 
-        if (name === 'ip_src' || name === 'ip_dst') {
-            valid = Validation.isValidIP(value, version);
-        } 
-        else if (name === 'ip_ttl') {
-            valid = Validation.isValidTTL(value);
-        }
+        const pkt = {
+            ts: Date.now(),
+            obj: data.response_summary
+        };
 
-        e.target.classList.toggle('is-invalid', !valid);
-        e.target.classList.toggle('is-valid', valid);
+        addSniffRow(pkt);
     });
-});
+}
+document.querySelector("#btnSend").addEventListener("click", sendPacket)
 
 // ---------- Template handling ----------
 function renderTemplates(list) {
@@ -258,7 +262,9 @@ function applyTemplate(t) {
 
     form.payload.value = payload;
     document.querySelector("#tabBuild").classList.remove("d-none");
+    document.querySelector('a[data-target="#tabBuild"]').classList.add("active");
     document.querySelector("#tabTemplates").classList.add("d-none");
+    document.querySelector('a[data-target="#tabTemplates"]').classList.remove("active");
 }
 
 // ---------- Setting handling ----------
@@ -288,9 +294,9 @@ document.addEventListener("DOMContentLoaded", async () => {
 function addSniffRow(pkt) {
     const tr = document.createElement("tr");
     const t = new Date(pkt.ts).toLocaleTimeString();
-    const src = pkt.obj.ip.src || pkt.obj.ethernet.src;
-    const dst = pkt.obj.ip.dst || pkt.obj.ethernet.dst;
-    const proto = pkt.obj.transport.proto;
+    const src = pkt.obj.ip.ipv4_src || pkt.obj.eth.eth_src;
+    const dst = pkt.obj.ip.ipv4_dst || pkt.obj.eth.eth_dst;
+    const proto = (["icmp", "tcp", "udp"].find(k => k in pkt.obj)).toUpperCase() || null;
     const payloadSummary = (pkt.obj.payload || "").slice(0, 40);
     tr.innerHTML = `<td>${t}</td><td>${src}</td><td>${dst}</td><td>${proto}</td><td>${payloadSummary}</td>`;
     tr.addEventListener("click", () => {
@@ -301,26 +307,6 @@ function addSniffRow(pkt) {
     });
     document.querySelector("#sniffTable").prepend(tr);
 }
-
-//Test
-const pkt = {
-    ts: Date.now(),
-    obj: {
-        ip: {
-            src: "192.168.1.10",
-            dst: "8.8.8.8",
-        },
-        ethernet: {
-            src: "AA:BB:CC:DD:EE:FF",
-            dst: "11:22:33:44:55:66",
-        },
-        transport: {
-            proto: "TCP",
-        },
-        payload: "GET /index.html HTTP/1.1\r\nHost: example.com\r\n\r\n",
-    }
-};
-addSniffRow(pkt);
   
 document.querySelector("#clearSniff").addEventListener("click", () => {
     document.querySelector("#sniffTable").innerHTML = "";
