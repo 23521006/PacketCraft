@@ -318,10 +318,27 @@ document.querySelector("#clearSniff").addEventListener("click", () => {
 const traceOutput = document.querySelector("#traceOut");
 
 function formatTraceroute(hops) {
-    return hops.map((hop) => {
-        const rtt = hop.rtt_ms === null ? "--" : `${hop.rtt_ms} ms`;
-        return `${hop.ttl}\t${hop.ip}\t${rtt}\t${hop.status}`;
-    }).join("\n");
+    const ttlWidth = Math.max(3, ...hops.map((hop) => String(hop.ttl).length));
+    const ipWidth = Math.max(2, ...hops.map((hop) => String(hop.ip || "").length));
+    const rttValues = hops.map((hop) => (hop.rtt_ms === null ? "--" : `${hop.rtt_ms} ms`));
+    const rttWidth = Math.max(3, ...rttValues.map((val) => val.length));
+
+    const rows = hops.map((hop, idx) => {
+        const ttl = String(hop.ttl).padEnd(ttlWidth, " ");
+        const ip = String(hop.ip || "").padEnd(ipWidth, " ");
+        const rtt = rttValues[idx].padEnd(rttWidth, " ");
+        const status = String(hop.status || "");
+        return `${ttl}  ${ip}  ${rtt}  ${status}`;
+    });
+
+    const header = [
+        "TTL".padEnd(ttlWidth, " "),
+        "IP".padEnd(ipWidth, " "),
+        "RTT".padEnd(rttWidth, " "),
+        "Status"
+    ].join("  ");
+
+    return `${header}\n${rows.join("\n")}`;
 }
 
 document.querySelector("#startTrace").addEventListener("click", () => {
@@ -345,7 +362,7 @@ document.querySelector("#startTrace").addEventListener("click", () => {
             return;
         }
 
-        const header = `Target: ${data.target} (${data.target_ip})\nTTL\tIP\tRTT\tStatus\n`;
+        const header = `Target: ${data.target} (${data.target_ip})\n`;
         traceOutput.textContent = header + formatTraceroute(data.hops);
     })
     .catch(err => {
