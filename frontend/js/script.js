@@ -312,6 +312,7 @@ document.querySelector("#clearSniff").addEventListener("click", () => {
     document.querySelector("#sniffTable").innerHTML = "";
     packetStore.sent = [];
     packetStore.received = [];
+    fetch("http://localhost:5000/clear-logs", { method: "POST" }).catch(() => {});
 });
 
 // ---------- Tools: Traceroute ----------
@@ -519,6 +520,35 @@ stopBatchButton.addEventListener("click", () => {
     }
     batchAbort = true;
     stopBatchButton.disabled = true;
+});
+
+// ---------- Sniffer: Export PCAP ----------
+const exportPcapButton = document.querySelector("#exportPcap");
+
+exportPcapButton.addEventListener("click", () => {
+    const folder = localStorage.getItem("nettools.downloadsPath");
+    if (!folder) {
+        return;
+    }
+    const filename = `packetcraft_${Date.now()}.pcap`;
+    exportPcapButton.disabled = true;
+    fetch("http://localhost:5000/export-pcap", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ folder, filename })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.status !== "success") {
+            console.error(data.message || "Export failed.");
+        }
+    })
+    .catch(err => {
+        console.error(err);
+    })
+    .finally(() => {
+        exportPcapButton.disabled = false;
+    });
 });
 
 renderTemplates(Template.builtinTemplates)
