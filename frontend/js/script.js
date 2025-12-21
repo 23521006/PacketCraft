@@ -314,4 +314,43 @@ document.querySelector("#clearSniff").addEventListener("click", () => {
     packetStore.received = [];
 });
 
+// ---------- Tools: Traceroute ----------
+const traceOutput = document.querySelector("#traceOut");
+
+function formatTraceroute(hops) {
+    return hops.map((hop) => {
+        const rtt = hop.rtt_ms === null ? "--" : `${hop.rtt_ms} ms`;
+        return `${hop.ttl}\t${hop.ip}\t${rtt}\t${hop.status}`;
+    }).join("\n");
+}
+
+document.querySelector("#startTrace").addEventListener("click", () => {
+    const host = document.querySelector("#trHost").value.trim();
+    if (!host) {
+        traceOutput.textContent = "Please enter a host.";
+        return;
+    }
+
+    traceOutput.textContent = `Tracing route to ${host}...\n`;
+
+    fetch("http://localhost:5000/traceroute", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ host })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.status !== "success") {
+            traceOutput.textContent = `Error: ${data.message || "Traceroute failed."}`;
+            return;
+        }
+
+        const header = `Target: ${data.target} (${data.target_ip})\nTTL\tIP\tRTT\tStatus\n`;
+        traceOutput.textContent = header + formatTraceroute(data.hops);
+    })
+    .catch(err => {
+        traceOutput.textContent = `Error: ${err.message || "Traceroute failed."}`;
+    });
+});
+
 renderTemplates(Template.builtinTemplates)
