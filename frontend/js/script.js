@@ -370,4 +370,44 @@ document.querySelector("#startTrace").addEventListener("click", () => {
     });
 });
 
+// ---------- Tools: Port Scan ----------
+const scanResultBody = document.querySelector("#scanResult");
+
+function renderScanResults(results) {
+    scanResultBody.innerHTML = "";
+    results.forEach((entry) => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `<td>${entry.port}</td><td>${entry.state}</td>`;
+        scanResultBody.appendChild(tr);
+    });
+}
+
+document.querySelector("#startScan").addEventListener("click", () => {
+    const host = document.querySelector("#scanHost").value.trim();
+    const ports = document.querySelector("#scanPorts").value.trim();
+    scanResultBody.innerHTML = "";
+
+    if (!host || !ports) {
+        scanResultBody.innerHTML = `<tr><td colspan="2">Please enter host and ports.</td></tr>`;
+        return;
+    }
+
+    fetch("http://localhost:5000/port-scan", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ host, ports })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.status !== "success") {
+            scanResultBody.innerHTML = `<tr><td colspan="2">Error: ${data.message || "Scan failed."}</td></tr>`;
+            return;
+        }
+        renderScanResults(data.results);
+    })
+    .catch(err => {
+        scanResultBody.innerHTML = `<tr><td colspan="2">Error: ${err.message || "Scan failed."}</td></tr>`;
+    });
+});
+
 renderTemplates(Template.builtinTemplates)
