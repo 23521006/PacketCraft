@@ -487,8 +487,11 @@ async function runBatchSend() {
             sent += 1;
             try {
                 const data = await sendBatchPacket();
-                if (data && data.status === "success" && data.response_summary) {
-                    received += 1;
+                if (data && data.status === "success") {
+                    if (data.response_summary) {
+                        received += 1;
+                        addSniffRow({ ts: Date.now(), obj: data.response_summary });
+                    }
                 }
             } catch (err) {
                 console.error(err);
